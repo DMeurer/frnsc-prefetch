@@ -199,6 +199,11 @@ pub fn read_prefetch_file_no_compressed(
 }
 
 fn process_prefetch_data(artifact_name: &str, buffer: &[u8]) -> ForensicResult<PrefetchFile> {
+    if buffer.len() < 84 {
+        return Err(ForensicError::bad_format_str(
+            "Prefetch file is shorter than its header",
+        ));
+    }
     let version = u32::from_le_bytes(buffer[0..4].try_into().unwrap());
     let signature = &buffer[4..8];
     if b"SCCA" != signature {

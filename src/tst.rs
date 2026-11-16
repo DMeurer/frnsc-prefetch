@@ -194,3 +194,19 @@ impl Drop for TempFile {
         let _ = std::fs::remove_file(&self.0);
     }
 }
+
+#[test]
+fn a_prefetch_shorter_than_its_header_is_refused() {
+    // A compressed file whose header claims a decompressed size of 0, and a plain one cut short.
+    let mut data =
+        std::fs::read("./artifacts/30/C/Windows/Prefetch/RUST_OUT.EXE-5D2C8541.pf").unwrap();
+    data[4..8].copy_from_slice(&0u32.to_le_bytes());
+    let tmp = TempFile::new("empty-RUST_OUT.EXE-5D2C8541.pf", &data);
+    let file = StdVirtualFS::new().open(&tmp.0).unwrap();
+    assert!(read_prefetch_file_compressed("RUST_OUT.EXE-5D2C8541.pf", file).is_err());
+
+    let data = std::fs::read("./artifacts/23/C/Windows/Prefetch/NOTEPAD.EXE-D8414F97.pf").unwrap();
+    let tmp = TempFile::new("short-NOTEPAD.EXE-D8414F97.pf", &data[..40]);
+    let file = StdVirtualFS::new().open(&tmp.0).unwrap();
+    assert!(read_prefetch_file_no_compressed("NOTEPAD.EXE-D8414F97.pf", file).is_err());
+}
