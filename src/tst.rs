@@ -289,3 +289,12 @@ fn counts_the_data_cannot_hold_are_refused() {
         assert!(pref.is_err(), "{name}");
     }
 }
+
+#[test]
+fn a_prefetch_cut_inside_its_file_information_is_refused() {
+    // Version 17 reads 64 bytes of file information after the 84-byte header.
+    let data = std::fs::read("./artifacts/17/C/Windows/Prefetch/CMD.EXE-087B4001.pf").unwrap();
+    let tmp = TempFile::new("cut-info-CMD.EXE-087B4001.pf", &data[..84 + 40]);
+    let file = StdVirtualFS::new().open(&tmp.0).unwrap();
+    assert!(read_prefetch_file_no_compressed("CMD.EXE-087B4001.pf", file).is_err());
+}

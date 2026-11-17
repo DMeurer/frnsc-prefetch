@@ -214,6 +214,18 @@ fn process_prefetch_data(artifact_name: &str, buffer: &[u8]) -> ForensicResult<P
     let raw_hash = u32::from_le_bytes(buffer[76..80].try_into().unwrap());
     check_prefetch_info_correct(artifact_name, &executable_name, raw_hash);
 
+    // The file information after the header, up to the last field each version reads.
+    let information_size = match version {
+        17 => 64,
+        23 => 72,
+        _ => 128,
+    };
+    if buffer.len() < 84 + information_size {
+        return Err(ForensicError::bad_format_str(
+            "Prefetch file is shorter than its file information",
+        ));
+    }
+
     let mut prefetch_content = PrefetchFile {
         name: executable_name,
         version,
