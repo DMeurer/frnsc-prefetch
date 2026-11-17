@@ -210,3 +210,28 @@ fn a_prefetch_shorter_than_its_header_is_refused() {
     let file = StdVirtualFS::new().open(&tmp.0).unwrap();
     assert!(read_prefetch_file_no_compressed("NOTEPAD.EXE-D8414F97.pf", file).is_err());
 }
+
+#[test]
+fn an_offset_and_size_that_wrap_are_refused() {
+    // Version 23: the file information starts at 84. An offset near 4 GiB plus a size of 4 KiB
+    // wraps to 0 in 32 bits, so the end passed the length check while the start did not.
+    let notepad =
+        std::fs::read("./artifacts/23/C/Windows/Prefetch/NOTEPAD.EXE-D8414F97.pf").unwrap();
+    let put =
+        |data: &mut Vec<u8>, at: usize, v: u32| data[at..at + 4].copy_from_slice(&v.to_le_bytes());
+    // The file names of the metrics.
+    let mut data = notepad.clone();
+    put(&mut data, 84 + 16, 0xFFFF_F000);
+    put(&mut data, 84 + 20, 0x1000);
+    let tmp = TempFile::new("wrap-strings-NOTEPAD.EXE-D8414F97.pf", &data);
+    let file = StdVirtualFS::new().open(&tmp.0).unwrap();
+    assert!(read_prefetch_file_no_compressed("NOTEPAD.EXE-D8414F97.pf", file).is_err());
+    // The first volume's file references.
+    let mut data = notepad;
+    let volumes = u32::from_le_bytes(data[84 + 24..84 + 28].try_into().unwrap()) as usize;
+    put(&mut data, volumes + 20, 0xFFFF_F000);
+    put(&mut data, volumes + 24, 0x1000);
+    let tmp = TempFile::new("wrap-volume-NOTEPAD.EXE-D8414F97.pf", &data);
+    let file = StdVirtualFS::new().open(&tmp.0).unwrap();
+    assert!(read_prefetch_file_no_compressed("NOTEPAD.EXE-D8414F97.pf", file).is_err());
+}

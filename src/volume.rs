@@ -15,7 +15,8 @@ pub fn volume_info_30(
     file_buffer: &[u8],
     info: &PrefetchFileInformation,
 ) -> ForensicResult<Vec<VolumeInformation>> {
-    let end_volume_pos = (info.volume_information_offset + info.volume_information_size) as usize;
+    let end_volume_pos = (info.volume_information_offset as usize)
+        .saturating_add(info.volume_information_size as usize);
     if end_volume_pos > file_buffer.len() {
         return Err(ForensicError::bad_format_str(
             "The volume information position is greater than the file buffer",
@@ -45,7 +46,8 @@ pub fn volume_info_30(
         let serial_number = u32_at_pos(volume_data, pos + 16);
         let file_references_offset = u32_at_pos(volume_data, pos + 20);
         let file_references_data_size = u32_at_pos(volume_data, pos + 24);
-        let end_files_pos = (file_references_data_size + file_references_offset) as usize;
+        let end_files_pos =
+            (file_references_offset as usize).saturating_add(file_references_data_size as usize);
         if end_files_pos > volume_data.len() {
             return Err(ForensicError::bad_format_str(
                 "The files reference position is greater than the volume buffer",
@@ -78,7 +80,8 @@ pub fn volume_info_17(
     file_buffer: &[u8],
     info: &PrefetchFileInformation,
 ) -> ForensicResult<Vec<VolumeInformation>> {
-    let end_volume_pos = (info.volume_information_offset + info.volume_information_size) as usize;
+    let end_volume_pos = (info.volume_information_offset as usize)
+        .saturating_add(info.volume_information_size as usize);
     if end_volume_pos > file_buffer.len() {
         return Err(ForensicError::bad_format_str(
             "The volume information position is greater than the file buffer",
@@ -108,7 +111,8 @@ pub fn volume_info_17(
         let serial_number = u32_at_pos(volume_data, pos + 16);
         let file_references_offset = u32_at_pos(volume_data, pos + 20);
         let file_references_data_size = u32_at_pos(volume_data, pos + 24);
-        let end_files_pos = (file_references_data_size + file_references_offset) as usize;
+        let end_files_pos =
+            (file_references_offset as usize).saturating_add(file_references_data_size as usize);
         if end_files_pos > volume_data.len() {
             return Err(ForensicError::bad_format_str(
                 "The files reference position is greater than the volume buffer",
@@ -141,7 +145,8 @@ pub fn volume_info_23(
     file_buffer: &[u8],
     info: &PrefetchFileInformation,
 ) -> ForensicResult<Vec<VolumeInformation>> {
-    let end_volume_pos = (info.volume_information_offset + info.volume_information_size) as usize;
+    let end_volume_pos = (info.volume_information_offset as usize)
+        .saturating_add(info.volume_information_size as usize);
     if end_volume_pos > file_buffer.len() {
         return Err(ForensicError::bad_format_str(
             "The volume information position is greater than the file buffer",
@@ -171,7 +176,8 @@ pub fn volume_info_23(
         let serial_number = u32_at_pos(volume_data, pos + 16);
         let file_references_offset = u32_at_pos(volume_data, pos + 20);
         let file_references_data_size = u32_at_pos(volume_data, pos + 24);
-        let end_files_pos = (file_references_data_size + file_references_offset) as usize;
+        let end_files_pos =
+            (file_references_offset as usize).saturating_add(file_references_data_size as usize);
         if end_files_pos > volume_data.len() {
             return Err(ForensicError::bad_format_str(
                 "The files reference position is greater than the volume buffer",
