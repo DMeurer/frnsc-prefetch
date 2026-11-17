@@ -33,7 +33,8 @@ fn decompress_chunk(
     out_buf: &mut Vec<u8>,
     chunk_size: usize,
 ) -> ForensicResult<(usize, usize)> {
-    if in_index + 256 > in_buf.len() {
+    // The Huffman table, then the bit stream's first 4 bytes.
+    if in_index + 260 > in_buf.len() {
         return Err(ForensicError::bad_format_str(
             "decompress_expres_huff(): Not enough compressed data for Huffman table",
         ));

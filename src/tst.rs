@@ -235,3 +235,12 @@ fn an_offset_and_size_that_wrap_are_refused() {
     let file = StdVirtualFS::new().open(&tmp.0).unwrap();
     assert!(read_prefetch_file_no_compressed("NOTEPAD.EXE-D8414F97.pf", file).is_err());
 }
+
+#[test]
+fn a_chunk_cut_after_its_huffman_table_is_refused() {
+    // The header, the 256-byte table and 2 of the bit stream's 4 bytes.
+    let data = std::fs::read("./artifacts/30/C/Windows/Prefetch/RUST_OUT.EXE-5D2C8541.pf").unwrap();
+    let tmp = TempFile::new("cut-RUST_OUT.EXE-5D2C8541.pf", &data[..8 + 258]);
+    let file = StdVirtualFS::new().open(&tmp.0).unwrap();
+    assert!(read_prefetch_file_compressed("RUST_OUT.EXE-5D2C8541.pf", file).is_err());
+}
