@@ -14,7 +14,11 @@ pub fn metrics_array_23(
 ) -> ForensicResult<Vec<Metric>> {
     let end_string_pos =
         (info.filename_string_offset as usize).saturating_add(info.filename_string_size as usize);
-    if end_string_pos > file_buffer.len() || info.metrics_offsets as usize > file_buffer.len() {
+    if end_string_pos > file_buffer.len()
+        || (info.metrics_offsets as usize)
+            .saturating_add((info.metrics_count as usize).saturating_mul(32))
+            > file_buffer.len()
+    {
         return Err(ForensicError::bad_format_str(
             "The metrics array position is greater than the file buffer length",
         ));
@@ -110,7 +114,11 @@ pub fn metrics_array_30(
 ) -> ForensicResult<Vec<Metric>> {
     let end_string_pos =
         (info.filename_string_offset as usize).saturating_add(info.filename_string_size as usize);
-    if end_string_pos > file_buffer.len() || info.metrics_offsets as usize > file_buffer.len() {
+    if end_string_pos > file_buffer.len()
+        || (info.metrics_offsets as usize)
+            .saturating_add((info.metrics_count as usize).saturating_mul(32))
+            > file_buffer.len()
+    {
         return Err(ForensicError::bad_format_str(
             "The metrics array position is greater than the file buffer length",
         ));

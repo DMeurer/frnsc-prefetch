@@ -23,6 +23,11 @@ pub fn volume_info_30(
         ));
     }
     let volume_data = &file_buffer[info.volume_information_offset as usize..end_volume_pos];
+    if (info.volume_count as usize).saturating_mul(96) > volume_data.len() {
+        return Err(ForensicError::bad_format_str(
+            "The volume count is greater than the volume information holds",
+        ));
+    }
     let mut volumes = Vec::with_capacity(info.volume_count as usize);
     for i in 0..(info.volume_count as usize) {
         let pos = i * 96;
@@ -88,6 +93,11 @@ pub fn volume_info_17(
         ));
     }
     let volume_data = &file_buffer[info.volume_information_offset as usize..end_volume_pos];
+    if (info.volume_count as usize).saturating_mul(40) > volume_data.len() {
+        return Err(ForensicError::bad_format_str(
+            "The volume count is greater than the volume information holds",
+        ));
+    }
     let mut volumes = Vec::with_capacity(info.volume_count as usize);
     for i in 0..(info.volume_count as usize) {
         let pos = i * 40;
@@ -153,6 +163,11 @@ pub fn volume_info_23(
         ));
     }
     let volume_data = &file_buffer[info.volume_information_offset as usize..end_volume_pos];
+    if (info.volume_count as usize).saturating_mul(104) > volume_data.len() {
+        return Err(ForensicError::bad_format_str(
+            "The volume count is greater than the volume information holds",
+        ));
+    }
     let mut volumes = Vec::with_capacity(info.volume_count as usize);
     for i in 0..(info.volume_count as usize) {
         let pos = i * 104;
@@ -273,7 +288,8 @@ fn extract_directory_strings_23(
             "Invalid buffer size for directory strings",
         ));
     }
-    let mut list = Vec::with_capacity(count);
+    // Each string takes at least 2 bytes, whatever count the file claims.
+    let mut list = Vec::with_capacity(count.min(directory_strings.len() / 2));
     let mut pos = 0;
     for _ in 0..count {
         if pos + 2 > directory_strings.len() {

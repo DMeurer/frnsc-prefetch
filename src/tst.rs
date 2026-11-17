@@ -257,3 +257,35 @@ fn a_compressed_header_without_compression_parses() {
     let pref = read_prefetch_file_compressed("NOTEPAD.EXE-D8414F97.pf", file);
     assert_eq!(pref.unwrap().name, "NOTEPAD.EXE");
 }
+
+#[test]
+fn counts_the_data_cannot_hold_are_refused() {
+    // Version 17: the file information starts at 84. Each count claims far more entries than the
+    // file has, which reserved gigabytes or read past the end.
+    let cmd = std::fs::read("./artifacts/17/C/Windows/Prefetch/CMD.EXE-087B4001.pf").unwrap();
+    let get = |data: &[u8], at: usize| u32::from_le_bytes(data[at..at + 4].try_into().unwrap());
+    let put =
+        |data: &mut Vec<u8>, at: usize, v: u32| data[at..at + 4].copy_from_slice(&v.to_le_bytes());
+    let mut metrics = cmd.clone();
+    put(&mut metrics, 84 + 4, 0x0FFF_FFFF);
+    // A trace count whose offset plus 12 bytes each wraps to an end below 12 in 32 bits.
+    let mut traces = cmd.clone();
+    let offset = get(&traces, 84 + 8) as u64;
+    put(
+        &mut traces,
+        84 + 12,
+        ((1u64 << 32) - offset).div_ceil(12) as u32,
+    );
+    let mut volumes = cmd;
+    put(&mut volumes, 84 + 28, 0x0FFF_FFFF);
+    for (name, data) in [
+        ("metrics", metrics),
+        ("traces", traces),
+        ("volumes", volumes),
+    ] {
+        let tmp = TempFile::new(&format!("count-{name}-CMD.EXE-087B4001.pf"), &data);
+        let file = StdVirtualFS::new().open(&tmp.0).unwrap();
+        let pref = read_prefetch_file_no_compressed("CMD.EXE-087B4001.pf", file);
+        assert!(pref.is_err(), "{name}");
+    }
+}

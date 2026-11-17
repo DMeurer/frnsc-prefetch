@@ -8,7 +8,8 @@ pub fn traces_for_dependency_v17(
     index: usize,
     size: usize,
 ) -> ForensicResult<Vec<Trace>> {
-    let end_pos = (info.trace_chain_offset + info.trace_chain_count * 12) as usize;
+    let end_pos = (info.trace_chain_offset as usize)
+        .saturating_add((info.trace_chain_count as usize).saturating_mul(12));
     if end_pos > file_buffer.len() {
         return Err(ForensicError::bad_format_str(
             "The trace array position is greater than the file buffer length",
@@ -40,7 +41,8 @@ pub fn process_trace_chain_v17(
     file_buffer: &[u8],
     info: &PrefetchFileInformation,
 ) -> ForensicResult<Vec<Trace>> {
-    let end_pos = (info.trace_chain_offset + info.trace_chain_count * 12) as usize;
+    let end_pos = (info.trace_chain_offset as usize)
+        .saturating_add((info.trace_chain_count as usize).saturating_mul(12));
     if end_pos > file_buffer.len() {
         return Err(ForensicError::bad_format_str(
             "The trace array position is greater than the file buffer length",
@@ -66,7 +68,8 @@ pub fn process_trace_chain_v30(
     file_buffer: &[u8],
     info: &PrefetchFileInformation,
 ) -> ForensicResult<Vec<Trace>> {
-    let end_pos = (info.trace_chain_offset + info.trace_chain_count * 8) as usize;
+    let end_pos = (info.trace_chain_offset as usize)
+        .saturating_add((info.trace_chain_count as usize).saturating_mul(8));
     if end_pos > file_buffer.len() {
         return Err(ForensicError::bad_format_str(
             "The trace array position is greater than the file buffer length",
@@ -94,7 +97,8 @@ pub fn traces_for_dependency_v30(
     index: usize,
     size: usize,
 ) -> ForensicResult<Vec<Trace>> {
-    let end_pos = (info.trace_chain_offset + info.trace_chain_count * 8) as usize;
+    let end_pos = (info.trace_chain_offset as usize)
+        .saturating_add((info.trace_chain_count as usize).saturating_mul(8));
     if end_pos > file_buffer.len() {
         return Err(ForensicError::bad_format_str(
             "The trace array position is greater than the file buffer length",
