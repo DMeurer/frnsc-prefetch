@@ -32,7 +32,8 @@ pub fn decompress(
 ) -> ForensicResult<()> {
     match algorithm {
         CompressionAlgorithm::CompressionFormatNone => {
-            out_buf.copy_from_slice(in_buf);
+            // The buffer only has capacity; copy_from_slice needs equal lengths.
+            out_buf.extend_from_slice(in_buf);
         }
         CompressionAlgorithm::CompressionFormatDefault => {
             return Err(forensic_rs::err::ForensicError::Other(

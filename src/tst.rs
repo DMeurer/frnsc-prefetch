@@ -244,3 +244,16 @@ fn a_chunk_cut_after_its_huffman_table_is_refused() {
     let file = StdVirtualFS::new().open(&tmp.0).unwrap();
     assert!(read_prefetch_file_compressed("RUST_OUT.EXE-5D2C8541.pf", file).is_err());
 }
+
+#[test]
+fn a_compressed_header_without_compression_parses() {
+    // "MAM" with algorithm 0, then the size and the plain file.
+    let plain = std::fs::read("./artifacts/23/C/Windows/Prefetch/NOTEPAD.EXE-D8414F97.pf").unwrap();
+    let mut data = b"MAM\0".to_vec();
+    data.extend_from_slice(&(plain.len() as u32).to_le_bytes());
+    data.extend_from_slice(&plain);
+    let tmp = TempFile::new("stored-NOTEPAD.EXE-D8414F97.pf", &data);
+    let file = StdVirtualFS::new().open(&tmp.0).unwrap();
+    let pref = read_prefetch_file_compressed("NOTEPAD.EXE-D8414F97.pf", file);
+    assert_eq!(pref.unwrap().name, "NOTEPAD.EXE");
+}
